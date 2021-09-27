@@ -1,0 +1,4 @@
+Android Studio
+Flutter
+Dart SDK
+All the dependencies are listed in pubspec.yaml file.
