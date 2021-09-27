@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 
-fetchAstrologersDetails(String url) async {
+fetchReportDetails(String url) async {
   http.Response response = await http.get(Uri.parse(url));
   if(response.statusCode == 200)
     return response.body;
@@ -21,12 +21,12 @@ class _Report extends State<ReportClass>{
   @override
 
   final url = "http://10.0.2.2:5000/dashboard/banners";
-  var astrologers_data;
+  var report_data;
   extractData() async {
-    var data = await fetchAstrologersDetails(url);
+    var data = await fetchReportDetails(url);
     await Future.delayed(Duration(seconds: 2));
     setState(() {
-      astrologers_data = jsonDecode(data)["output"];
+      report_data = jsonDecode(data)["output"];
     });
   }
   void initState(){
@@ -34,12 +34,12 @@ class _Report extends State<ReportClass>{
     super.initState();
   }
   List<Widget> _astrologersWidgets(){
-    if(astrologers_data == null || astrologers_data == []){
+    if(report_data == null || report_data == []){
       return [];
     }
     List<Widget> widgets = [];
-    for(int i=0; i<astrologers_data.length; i++){
-      var item = astrologers_data[i];
+    for(int i=0; i<report_data.length; i++){
+      var item = report_data[i];
       var name = item["name"];
       var imageUrl = item["imageUrl"];
 

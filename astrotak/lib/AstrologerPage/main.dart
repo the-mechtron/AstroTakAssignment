@@ -21,13 +21,15 @@ class _AstrologerPage extends State<AstrologerPage>{
   final url = "http://10.0.2.2:5000/dashboard/astrologers";
   TextEditingController editingController = TextEditingController(text: "");
   var astrologers_data;
+  var filter = "Remove";
+  var sort = "false";
   var widegets = [];
   extractData() async {
     var data = await fetchAstrologersDetails(url);
     await Future.delayed(Duration(seconds: 1));
     setState(() {
       astrologers_data = jsonDecode(data)["output"];
-      filterSearchResults('', false);
+      filterSearchResults('', sort, filter);
       print(widegets.length);
     });
   }
@@ -86,29 +88,60 @@ class _AstrologerPage extends State<AstrologerPage>{
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text("Talk to an Astrologer", style: GoogleFonts.koHo(fontSize:20, fontWeight: FontWeight.bold),),
-                  Container(width: 40,
-                      child: PopupMenuButton(
-                        // isExpanded: true,
-                        icon: Container(
-                          width: 40,
-                          child: Image.asset('assets/filter.png'),
-                        ),
-                        itemBuilder: (BuildContext context){
-                            return ["Experience-High-to-Low","Experience-Low-to-High","Price-Low-to-High", "Price-High-to-Low"].map((val){
-                              return PopupMenuItem(value:val,child: Text(val, style: GoogleFonts.koHo(),));
-                          }).toList();
-                          },
-                          // value: _currentSelectedItem,
-                        onSelected: (value){
-                          setState(() {
-                            _currentSelectedItem = value;
-                            setState(() {
-                              filterSearchResults(editingController.text.toString(), value);
-                            });
-                            // filterSearchResults('', value+1);
-                          });
-                        },
-                      )
+                  Row(
+                    children: [
+                      Container(width: 40,
+                          child: PopupMenuButton(
+                            // isExpanded: true,
+                            icon: Container(
+                              width: 40,
+                              child: Image.asset('assets/filter.png'),
+                            ),
+                            itemBuilder: (BuildContext context){
+                              return ["English","Hindi","Remove"].map((val){
+                                return PopupMenuItem(value:val,child: Text(val, style: GoogleFonts.koHo(),));
+                              }).toList();
+                            },
+                            // value: _currentSelectedItem,
+                            onSelected: (value){
+                              setState(() {
+                                _currentSelectedItem = value;
+                                setState(() {
+                                  filter = value;
+                                  print(filter);
+                                  filterSearchResults(editingController.text.toString(), sort, filter);
+                                });
+                                // filterSearchResults('', value+1);
+                              });
+                            },
+                          )
+                      ),
+                      Container(width: 40,
+                          child: PopupMenuButton(
+                            // isExpanded: true,
+                            icon: Container(
+                              width: 40,
+                              child: Image.asset('assets/sort.png'),
+                            ),
+                            itemBuilder: (BuildContext context){
+                                return ["Experience-High-to-Low","Experience-Low-to-High","Price-Low-to-High", "Price-High-to-Low"].map((val){
+                                  return PopupMenuItem(value:val,child: Text(val, style: GoogleFonts.koHo(),));
+                              }).toList();
+                              },
+                              // value: _currentSelectedItem,
+                            onSelected: (value){
+                              setState(() {
+                                _currentSelectedItem = value;
+                                setState(() {
+                                  sort = value;
+                                  filterSearchResults(editingController.text.toString(), sort, filter);
+                                });
+                                // filterSearchResults('', value+1);
+                              });
+                            },
+                          )
+                      ),
+                    ],
                   )
                 ],
               ),
@@ -117,7 +150,7 @@ class _AstrologerPage extends State<AstrologerPage>{
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 onChanged: (value) {
-                  filterSearchResults(value, false);
+                  filterSearchResults(value, sort, filter);
                 },
                 controller: editingController,
                 decoration: InputDecoration(
@@ -144,12 +177,12 @@ class _AstrologerPage extends State<AstrologerPage>{
       ),
     );
   }
-  void filterSearchResults(String search, var filter) async {
+  void filterSearchResults(String search, var sort, var filter) async {
     widegets = [];
     if(astrologers_data == null){
       return;
     }
-    if(filter == "Price-Low-to-High"){
+    if(sort == "Price-Low-to-High"){
       astrologers_data.sort( (a,b) {
         int a1 = int.parse((a["charges"].split('/'))[0]);
         int b1 = int.parse((b["charges"].split('/'))[0]);
@@ -159,7 +192,7 @@ class _AstrologerPage extends State<AstrologerPage>{
         return 0;
       });
     }
-    if(filter == "Price-High-to-Low"){
+    if(sort == "Price-High-to-Low"){
       astrologers_data.sort( (a,b) {
         int a1 = int.parse((a["charges"].split('/'))[0]);
         int b1 = int.parse((b["charges"].split('/'))[0]);
@@ -169,7 +202,7 @@ class _AstrologerPage extends State<AstrologerPage>{
         return 0;
       });
     }
-    if(filter == "Experience-Low-to-High"){
+    if(sort == "Experience-Low-to-High"){
       astrologers_data.sort( (a,b) {
         int a1 = a["experience"];
         int b1 = b["experience"];
@@ -179,7 +212,7 @@ class _AstrologerPage extends State<AstrologerPage>{
         return 0;
       });
     }
-    if(filter == "Experience-High-to-Low"){
+    if(sort == "Experience-High-to-Low"){
       astrologers_data.sort( (a,b) {
         int a1 = a["experience"];
         int b1 = b["experience"];
@@ -199,7 +232,7 @@ class _AstrologerPage extends State<AstrologerPage>{
       int experience = item["experience"];
       Widget widget = Container();
       if(name.contains(search) || skills.contains(search) || charges.contains(search) || language.contains(search)){
-        widget =  Column(
+          widget =  Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -258,9 +291,17 @@ class _AstrologerPage extends State<AstrologerPage>{
           ],
         );
       }
-      setState(() {
-        widegets.add(widget);
-      });
+      if(filter == "Remove"){
+        setState(() {
+          widegets.add(widget);
+        });
+        continue;
+      }
+      if(language.contains(filter)){
+        setState(() {
+          widegets.add(widget);
+        });
+      }
     }
   }
 }
